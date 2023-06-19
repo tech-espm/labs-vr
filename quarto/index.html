@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-br">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Quarto</title>
+
+	<style type="text/css">
+		html, body {
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
+			margin: 0;
+			padding: 0;
+		}
+
+		#renderCanvas {
+			width: 100%;
+			height: 100%;
+			touch-action: none;
+		}
+	</style>
+
+	<script src="https://cdn.babylonjs.com/babylon.js"></script>
+	<script src="https://cdn.babylonjs.com/loaders/babylon.glTFFileLoader.js"></script>
+</head>
+<body>
+	<canvas id="renderCanvas"></canvas>
+
+	<script type="text/javascript">
+		// Função do DOM para obter um elemento da página. No caso desse exemplo, o objeto
+		// é o canvas utilizado para renderizar a cena.
+		const canvas = document.getElementById("renderCanvas");
+
+		// Cria e inicia a engine do Babylon.js.
+		const engine = new BABYLON.Engine(canvas, true);
+
+		// Essa variável irá armazenar a cena.
+		let scene;
+
+		async function criarCena() {
+			// Cria o objeto da cena, que conterá todos os objetos, luzes, câmeras etc.
+			scene = new BABYLON.Scene(engine);
+
+			// Cor do fundo:
+			scene.clearColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+			//Cor "Luz ambiente":
+			scene.ambientColor = new BABYLON.Color3(0.5, 0.5, 0.5);
+
+			//Debug:
+			//scene.debugLayer.show({ embedMode: true });
+
+			//Cria a camera Universal x - 0 , y - 1.8 , z - -1
+			let camera = new BABYLON.UniversalCamera("camera1", new BABYLON.Vector3(0, 1.8, -1), scene);
+	
+			// O padrão é 0.8, ou +- 45°
+			// 70° = 1.22...
+			//Ajustando o Fov (campo de visão) da camera padrão em 0.8 (aproxmadamente 45°) fov novo de 1.22... (aproxmadamente 70°)
+			camera.fov = 1.221730476396030703846583537942;
+
+			//Define o ponto que a camera irá observar assim que for criada 
+			camera.setTarget(new BABYLON.Vector3(0, 1.8, 1));
+
+			// Utilitário que faz com que o teclado/mouse/toque controle a câmera.
+			camera.attachControl(canvas, true);
+
+			//Cria todos os PointLights do quarto.
+			const light = new BABYLON.PointLight("pointLight", new BABYLON.Vector3(1, 2, -2), scene);
+			const light2 = new BABYLON.PointLight("pointLight", new BABYLON.Vector3(-1, 2, -2), scene);
+			const light3 = new BABYLON.PointLight("pointLight", new BABYLON.Vector3(1, 2, 2), scene);
+			const light4 = new BABYLON.PointLight("pointLight", new BABYLON.Vector3(-1, 2, 2), scene);
+			light.diffuse = new BABYLON.Color3(1, 1, 1);
+			light.specular = new BABYLON.Color3(0, 0, 0);
+
+			//Define intencidade da Luz
+			light.range = 5.5;
+
+			//Carrega o objeto na cena
+			const obj = await BABYLON.SceneLoader.AppendAsync("/quarto/Modelos/", "Quarto.glb", scene);
+
+			if (location.href.indexOf("?vr") >= 0) {
+				// Para testar o WebXR:
+				// https://doc.babylonjs.com/features/featuresDeepDive/webXR/introToWebXR
+				// https://blog.mozvr.com/webxr-emulator-extension/
+				// Depois de instalada a extensão, abra as ferramentas do desenvolvedor (F12, Ctrl+Shift+I etc.)
+				// e vá até a aba WebXR para escolher o modelo do óculos. Ao mudar o modelo do óculos no emulador,
+				// é preciso atualizar a página.
+				const xr = await scene.createDefaultXRExperienceAsync();
+			}
+
+			terminarCriacao();
+		};
+
+		function terminarCriacao() {
+			// Registra uma função para ser executada a cada quadro da cena. Como não temos
+			// uma lógica, a função apenas pede para que a cena se renderize.
+			engine.runRenderLoop(function () {
+				scene.render();
+			});
+		}
+
+		// Cria nossa cena.
+		criarCena().catch(function (reason) {
+			alert("Erro ao criar a cena: " + reason);
+		});
+
+		// Monitora o redimensionamento da tela do navegador.
+		window.addEventListener("resize", function () {
+			engine.resize();
+		});
+	</script>
+
+</body>
+</html>
